@@ -1,0 +1,18 @@
+{
+  "name": "Unit Converter - Simple & Precise",
+  "short_name": "Unit Converter",
+  "description": "Convert between length, volume, weight, energy, and temperature units with precision",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5b72c5",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

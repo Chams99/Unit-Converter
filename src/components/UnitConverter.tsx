@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { ArrowLeftRight, Copy, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
 import { categories, convert, formatResult, type Category } from '@/lib/conversions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface UnitConverterProps {
   onConversion: (conversion: {
@@ -23,9 +24,15 @@ interface UnitConverterProps {
     result: number;
     category: string;
   }) => void;
+  selectedHistoryItem?: {
+    value: number;
+    fromUnit: string;
+    toUnit: string;
+    category: string;
+  } | null;
 }
 
-export function UnitConverter({ onConversion }: UnitConverterProps) {
+const UnitConverter = memo(function UnitConverter({ onConversion, selectedHistoryItem }: UnitConverterProps) {
   const [category, setCategory] = useState<Category>('length');
   const [inputValue, setInputValue] = useState('');
   const [fromUnit, setFromUnit] = useState('meter');
@@ -34,43 +41,62 @@ export function UnitConverter({ onConversion }: UnitConverterProps) {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
+  // Debounce input value for better performance
+  const debouncedInputValue = useDebounce(inputValue, 300);
+
+  // Memoize current units to prevent unnecessary re-renders
+  const currentUnits = useMemo(() => categories[category].units, [category]);
+
   // Update default units when category changes
   useEffect(() => {
-    const units = categories[category].units;
-    if (units.length >= 2) {
-      setFromUnit(units[0].value);
-      setToUnit(units[1].value);
+    if (currentUnits.length >= 2) {
+      setFromUnit(currentUnits[0].value);
+      setToUnit(currentUnits[1].value);
     }
     setResult(null);
-  }, [category]);
+  }, [category, currentUnits]);
 
-  // Perform conversion
+  // Populate converter when history item is selected
   useEffect(() => {
-    const numValue = parseFloat(inputValue);
-    if (!isNaN(numValue) && inputValue !== '') {
-      const convertedValue = convert(numValue, fromUnit, toUnit, category);
-      setResult(convertedValue);
-      
-      // Save to history
+    if (selectedHistoryItem) {
+      setCategory(selectedHistoryItem.category as Category);
+      setInputValue(selectedHistoryItem.value.toString());
+      setFromUnit(selectedHistoryItem.fromUnit);
+      setToUnit(selectedHistoryItem.toUnit);
+    }
+  }, [selectedHistoryItem]);
+
+  // Debounced conversion with useMemo
+  const convertedResult = useMemo(() => {
+    const numValue = parseFloat(debouncedInputValue);
+    if (!isNaN(numValue) && debouncedInputValue !== '') {
+      return convert(numValue, fromUnit, toUnit, category);
+    }
+    return null;
+  }, [debouncedInputValue, fromUnit, toUnit, category]);
+
+  // Update result when conversion changes
+  useEffect(() => {
+    setResult(convertedResult);
+    
+    if (convertedResult !== null) {
+      const numValue = parseFloat(debouncedInputValue);
       onConversion({
         value: numValue,
         fromUnit,
         toUnit,
-        result: convertedValue,
+        result: convertedResult,
         category,
       });
-    } else {
-      setResult(null);
     }
-  }, [inputValue, fromUnit, toUnit, category]);
+  }, [convertedResult, debouncedInputValue, fromUnit, toUnit, category, onConversion]);
 
-  const handleSwapUnits = () => {
-    const temp = fromUnit;
+  const handleSwapUnits = useCallback(() => {
     setFromUnit(toUnit);
-    setToUnit(temp);
-  };
+    setToUnit(fromUnit);
+  }, [fromUnit, toUnit]);
 
-  const handleCopyResult = async () => {
+  const handleCopyResult = useCallback(async () => {
     if (result !== null) {
       await navigator.clipboard.writeText(formatResult(result));
       setCopied(true);
@@ -80,9 +106,23 @@ export function UnitConverter({ onConversion }: UnitConverterProps) {
       });
       setTimeout(() => setCopied(false), 2000);
     }
-  };
+  }, [result, toast]);
 
-  const currentUnits = categories[category].units;
+  // Memoize category options to prevent re-renders
+  const categoryOptions = useMemo(() => 
+    Object.entries(categories).map(([key, { label }]) => (
+      <SelectItem key={key} value={key}>
+        {label}
+      </SelectItem>
+    )), []);
+
+  // Memoize unit options
+  const unitOptions = useMemo(() => 
+    currentUnits.map((unit) => (
+      <SelectItem key={unit.value} value={unit.value}>
+        {unit.label}
+      </SelectItem>
+    )), [currentUnits]);
 
   return (
     <Card className="p-6 md:p-8 bg-gradient-to-br from-card to-card/80 backdrop-blur-sm shadow-card">
@@ -96,11 +136,7 @@ export function UnitConverter({ onConversion }: UnitConverterProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-popover">
-            {Object.entries(categories).map(([key, { label }]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
+            {categoryOptions}
           </SelectContent>
         </Select>
       </div>
@@ -131,11 +167,7 @@ export function UnitConverter({ onConversion }: UnitConverterProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-popover">
-            {currentUnits.map((unit) => (
-              <SelectItem key={unit.value} value={unit.value}>
-                {unit.label}
-              </SelectItem>
-            ))}
+            {unitOptions}
           </SelectContent>
         </Select>
       </div>
@@ -166,11 +198,7 @@ export function UnitConverter({ onConversion }: UnitConverterProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-popover">
-            {currentUnits.map((unit) => (
-              <SelectItem key={unit.value} value={unit.value}>
-                {unit.label}
-              </SelectItem>
-            ))}
+            {unitOptions}
           </SelectContent>
         </Select>
       </div>
@@ -206,4 +234,6 @@ export function UnitConverter({ onConversion }: UnitConverterProps) {
       )}
     </Card>
   );
-}
+});
+
+export { UnitConverter };
