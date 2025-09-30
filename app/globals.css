@@ -1,0 +1,277 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 231 48% 48%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 231 70% 65%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 189 94% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 231 48% 48%;
+
+    --radius: 0.75rem;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(231 48% 48%), hsl(231 70% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(189 94% 43%), hsl(204 94% 56%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 99%));
+    
+    --shadow-elegant: 0 10px 40px -10px hsl(231 48% 48% / 0.15);
+    --shadow-card: 0 4px 20px -2px hsl(231 48% 48% / 0.08);
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 231 70% 65%;
+    --primary-foreground: 222 47% 11%;
+    --primary-glow: 231 70% 75%;
+
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 189 94% 43%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 231 70% 65%;
+    
+    --gradient-primary: linear-gradient(135deg, hsl(231 70% 65%), hsl(231 70% 75%));
+    --gradient-accent: linear-gradient(135deg, hsl(189 94% 43%), hsl(204 94% 56%));
+    --gradient-card: linear-gradient(180deg, hsl(222 47% 11%), hsl(222 47% 13%));
+    
+    --shadow-elegant: 0 10px 40px -10px hsl(231 70% 65% / 0.3);
+    --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Performance optimizations for smoother animations */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Optimize animations */
+  .animate-in,
+  [data-animate-in] {
+    will-change: transform, opacity;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize transforms */
+  .transform,
+  .hover\:scale-\[1\.02\],
+  .active\:scale-\[0\.98\] {
+    will-change: transform;
+  }
+
+  /* Smooth theme transitions using modern CSS */
+  :root {
+    color-scheme: light dark;
+  }
+
+  /* Smooth color transitions for theme switching */
+  html,
+  body,
+  * {
+    transition: 
+      background-color 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      fill 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      stroke 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Add smooth backdrop filter transitions */
+  [class*="backdrop-blur"],
+  [class*="bg-opacity"] {
+    transition: 
+      background-color 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      backdrop-filter 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* View Transitions API support for ultra-smooth theme switching */
+  @supports (view-transition-name: none) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.7s;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Circular reveal animation with scale effect */
+    ::view-transition-old(root) {
+      z-index: 1;
+      animation-name: theme-scale-out;
+    }
+
+    ::view-transition-new(root) {
+      z-index: 2;
+      animation-name: theme-scale-in;
+    }
+
+    @keyframes theme-scale-out {
+      from {
+        transform: scale(1);
+        opacity: 1;
+      }
+      to {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+    }
+
+    @keyframes theme-scale-in {
+      from {
+        transform: scale(1.05);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Blur effect during transition for extra smoothness */
+    ::view-transition-group(root) {
+      animation-duration: 0.7s;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  /* Exclude rapid animations and transforms from color transitions */
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce,
+  [class*="animate-"] {
+    transition: transform 0.2s, opacity 0.2s;
+  }
+
+  /* Theme toggle button ripple effect */
+  @keyframes theme-ripple {
+    0% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4),
+                  0 0 0 0 hsl(var(--primary) / 0.3),
+                  0 0 0 0 hsl(var(--primary) / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 0 10px hsl(var(--primary) / 0),
+                  0 0 0 20px hsl(var(--primary) / 0),
+                  0 0 0 30px hsl(var(--primary) / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0),
+                  0 0 0 0 hsl(var(--primary) / 0),
+                  0 0 0 0 hsl(var(--primary) / 0);
+    }
+  }
+
+  /* Smooth glow animation for theme toggle */
+  @keyframes theme-glow {
+    0%, 100% {
+      filter: drop-shadow(0 0 2px hsl(var(--primary) / 0.5));
+    }
+    50% {
+      filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.8))
+              drop-shadow(0 0 12px hsl(var(--primary) / 0.4));
+    }
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+  }
+}
