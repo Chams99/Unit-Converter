@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "dev": {
+      "env": ["CONVERTAL_API_URL"]
+    },
+    "build": {
+      "env": ["CONVERTAL_API_URL", "NEXT_DIST_DIR"],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
+    }
+  }
+}

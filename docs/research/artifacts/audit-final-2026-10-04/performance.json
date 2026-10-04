@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-04",
+  "baseUrl": "http://127.0.0.3:43212",
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "conditions": "headless Chrome, local target, no CPU or network throttling, one new context per route and viewport, 1500ms observation window",
+  "samples": [
+    {
+      "width": 390,
+      "route": "/",
+      "ttfbMs": 4,
+      "fcpMs": 416,
+      "lcpMs": 416,
+      "cls": 0,
+      "loadMs": 252.89999997615814
+    },
+    {
+      "width": 390,
+      "route": "/currency",
+      "ttfbMs": 5,
+      "fcpMs": 196,
+      "lcpMs": 196,
+      "cls": 0,
+      "loadMs": 214.60000002384186
+    },
+    {
+      "width": 390,
+      "route": "/developer",
+      "ttfbMs": 4.900000035762787,
+      "fcpMs": 476,
+      "lcpMs": 476,
+      "cls": 0,
+      "loadMs": 297.2000000476837
+    },
+    {
+      "width": 390,
+      "route": "/images",
+      "ttfbMs": 5,
+      "fcpMs": 268,
+      "lcpMs": 268,
+      "cls": 0,
+      "loadMs": 259.69999998807907
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "ttfbMs": 7.300000011920929,
+      "fcpMs": 216,
+      "lcpMs": 216,
+      "cls": 0,
+      "loadMs": 181.30000001192093
+    },
+    {
+      "width": 1440,
+      "route": "/currency",
+      "ttfbMs": 5,
+      "fcpMs": 200,
+      "lcpMs": 200,
+      "cls": 0,
+      "loadMs": 235.0999999642372
+    },
+    {
+      "width": 1440,
+      "route": "/developer",
+      "ttfbMs": 4.5,
+      "fcpMs": 240,
+      "lcpMs": 240,
+      "cls": 0,
+      "loadMs": 217.60000002384186
+    },
+    {
+      "width": 1440,
+      "route": "/images",
+      "ttfbMs": 4.5,
+      "fcpMs": 300,
+      "lcpMs": 300,
+      "cls": 0,
+      "loadMs": 266.19999998807907
+    }
+  ]
+}
