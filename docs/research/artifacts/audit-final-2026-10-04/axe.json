@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-04",
+  "url": "http://127.0.0.3:43212",
+  "viewport": "390x900",
+  "axe": "4.13.0",
+  "results": [
+    {
+      "route": "/",
+      "violations": [
+        {
+          "id": "region",
+          "impact": "moderate",
+          "help": "All page content should be contained by landmarks",
+          "nodes": [
+            {
+              "target": [
+                ".mobile-nav"
+              ],
+              "html": "<div class=\"mobile-nav\" aria-label=\"Workflows\"><a class=\"active\" href=\"/\">Units</a><a class=\"\" href=\"/currency\">Currency</a><a class=\"\" href=\"/developer\">Developer</a><a class=\"\" href=\"/images\">Images</a></div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/currency",
+      "violations": [
+        {
+          "id": "region",
+          "impact": "moderate",
+          "help": "All page content should be contained by landmarks",
+          "nodes": [
+            {
+              "target": [
+                ".mobile-nav"
+              ],
+              "html": "<div class=\"mobile-nav\" aria-label=\"Workflows\"><a class=\"\" href=\"/\">Units</a><a class=\"active\" href=\"/currency\">Currency</a><a class=\"\" href=\"/developer\">Developer</a><a class=\"\" href=\"/images\">Images</a></div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/developer",
+      "violations": [
+        {
+          "id": "region",
+          "impact": "moderate",
+          "help": "All page content should be contained by landmarks",
+          "nodes": [
+            {
+              "target": [
+                ".mobile-nav"
+              ],
+              "html": "<div class=\"mobile-nav\" aria-label=\"Workflows\"><a class=\"\" href=\"/\">Units</a><a class=\"\" href=\"/currency\">Currency</a><a class=\"active\" href=\"/developer\">Developer</a><a class=\"\" href=\"/images\">Images</a></div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/images",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".selected"
+              ],
+              "html": "<button type=\"button\" class=\"selected\" aria-pressed=\"true\">Server Sharp</button>"
+            }
+          ]
+        },
+        {
+          "id": "region",
+          "impact": "moderate",
+          "help": "All page content should be contained by landmarks",
+          "nodes": [
+            {
+              "target": [
+                ".mobile-nav"
+              ],
+              "html": "<div class=\"mobile-nav\" aria-label=\"Workflows\"><a class=\"\" href=\"/\">Units</a><a class=\"\" href=\"/currency\">Currency</a><a class=\"\" href=\"/developer\">Developer</a><a class=\"active\" href=\"/images\">Images</a></div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "route": "/about",
+      "violations": []
+    }
+  ]
+}

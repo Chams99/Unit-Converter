@@ -1,0 +1,10 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "dev": {
+      "env": ["HOST", "PORT"],
+      "passThroughEnv": ["CURRENCYAPI_API_KEY"]
+    }
+  }
+}

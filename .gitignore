@@ -1,17 +1,21 @@
 # dependencies
-/node_modules
+**/node_modules/
 /.pnp
 .pnp.js
 
 # testing
-/coverage
+**/coverage/
 
 # next.js
-/.next/
+**/.next/
+**/.next-audit*/
 /out/
 
 # production
-/build
+**/build/
+**/dist/
+.turbo/
+generated/
 
 # misc
 .DS_Store
@@ -34,6 +38,10 @@ lerna-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# pnpm is the canonical package manager for this workspace
+package-lock.json
+bun.lockb
 
 # editor
 .vscode/*
