@@ -1,0 +1,26 @@
+.git
+.github
+.turbo
+**/.turbo
+**/node_modules
+**/.next
+**/.next-audit*
+**/dist
+**/build
+**/coverage
+**/*.tsbuildinfo
+**/playwright-report
+**/test-results
+docs
+**/screenshots
+**/artifacts
+**/.DS_Store
+**/*.log
+**/.env
+**/.env.*
+**/*.env
+!**/.env.example
+!/.env.deploy.example
+README*
+AGENTS.md
+system design.md

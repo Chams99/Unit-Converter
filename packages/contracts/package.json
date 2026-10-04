@@ -2,6 +2,7 @@
   "name": "@universal-convertal/contracts",
   "version": "0.1.0",
   "private": true,
+  "files": ["dist", "src"],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./src/index.ts",
