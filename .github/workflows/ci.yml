@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, monorepo-ui-redesign]
   pull_request:
 
 permissions:
@@ -36,3 +36,44 @@ jobs:
           pnpm run typecheck
           pnpm run test
           pnpm run build
+
+  deployment-smoke:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # The compose file requires an existing Traefik network and production
+      # domain. This isolated job provides safe placeholders; it starts no proxy.
+      TRAEFIK_NETWORK: convertal-ci-traefik
+      CONVERTAL_DOMAIN: convertal.ci.invalid
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare deployment environment
+        run: |
+          bash -n scripts/deploy.sh
+          cp .env.deploy.example .env.deploy
+          docker network create "$TRAEFIK_NETWORK"
+
+      - name: Validate Compose configuration
+        run: docker compose --env-file .env.deploy -p convertal-ci config --quiet
+
+      - name: Build production containers
+        run: docker compose --env-file .env.deploy -p convertal-ci build
+
+      - name: Start production containers
+        run: docker compose --env-file .env.deploy -p convertal-ci up --detach --wait --wait-timeout 120
+
+      - name: Smoke test deployed web and API
+        run: docker compose --env-file .env.deploy -p convertal-ci exec -T web node --input-type=module < scripts/verify-deployment.mjs
+
+      - name: Show bounded container logs on failure
+        if: failure()
+        run: docker compose --env-file .env.deploy -p convertal-ci logs --no-color --tail 100
+
+      - name: Stop containers and remove CI network
+        if: always()
+        run: |
+          docker compose --env-file .env.deploy -p convertal-ci down --timeout 10 || true
+          docker network rm "$TRAEFIK_NETWORK" || true

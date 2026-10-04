@@ -90,27 +90,13 @@ The local UI primitives and their licenses are listed in
 workbench composition lives beside the app; no complete SaaS template was
 copied into the workspace.
 
-## Deployment notes
+## Deployment
 
-Production requires Node.js 24 LTS. The API listens on `HOST=0.0.0.0` and
-`PORT=8787` by default; the web app listens on Next's default port 3000. Set
-`CONVERTAL_API_URL` in `apps/web/.env.local` or the build environment before
-building the web package. Next compiles the same-origin `/api/*` rewrite from
-that value, and the package-local Turbo configuration includes it in the web
-build hash. Rebuild the web package whenever the API origin changes.
-
-Optional API settings are `CURRENCYAPI_API_KEY` (otherwise the no-key
-Frankfurter adapter is used), `HOST`, and `PORT`; copy the package-local
-`.env.example` files as a starting point, then export those values in the API
-process environment (the Node start script does not auto-load `.env` files).
-For example, PowerShell can use `$env:PORT='8787'; $env:HOST='0.0.0.0'; pnpm
---filter @universal-convertal/api start`. Build first, then run
-`pnpm --filter @universal-convertal/api start` and
-`pnpm --filter @universal-convertal/web start`; put TLS and the public reverse
-proxy in front of the web process and route `/api` to the API process. Currency
-provider credentials stay server-side. Do not enable arbitrary remote URL
-conversion, unbounded image decoding, or worker queues without the security
-and resource limits described in the research documents.
+Production uses Docker Compose with the existing Traefik instance. For the
+first VPS setup, update commands, health checks, routing, and runtime settings,
+see [docs/deployment.md](docs/deployment.md). The API stays private on the
+Compose backend network; the public /api/ route is rate-limited by Traefik and
+forwarded through the web service.
 
 See [verification.md](docs/research/verification.md) for the checked commands,
 resolved dependency versions, production smoke ports, and known verification
