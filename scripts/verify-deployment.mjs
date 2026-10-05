@@ -36,10 +36,10 @@ function visibleText(markup) {
 console.log(`Checking production deployment at ${baseUrl.origin}`)
 
 const routes = [
-  ['/', 'Convert with confidence'],
-  ['/currency', 'Currency, with context'],
-  ['/developer', 'Small tools, clear output'],
-  ['/images', 'Convert images with control'],
+  ['/', 'Unit converter'],
+  ['/currency', 'Currency converter'],
+  ['/developer', 'Developer tools'],
+  ['/images', 'Image converter'],
   ['/about', 'Tools with visible boundaries.'],
 ]
 
