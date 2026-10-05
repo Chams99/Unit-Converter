@@ -1,0 +1,179 @@
+{
+  "date": "2026-10-05",
+  "baseUrl": "http://127.0.0.1:3220",
+  "conditions": "Node 24 / Next.js production build / headless Chrome / reduced motion / mocked-off API routes",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "status": "pass",
+      "checks": [
+        "no implicit saves",
+        "copy only copies",
+        "explicit keyboard save",
+        "deduplication",
+        "restore without rewriting history",
+        "invalid input disabled",
+        "clear/undo",
+        "persistence",
+        "overflow",
+        "touch target",
+        "axe",
+        "no API calls"
+      ]
+    },
+    {
+      "name": "existing history and shared URL",
+      "status": "pass"
+    },
+    {
+      "name": "blocked storage retains working conversion and session history",
+      "status": "pass"
+    },
+    {
+      "name": "normal motion, client navigation, back, and changed motion preference",
+      "status": "pass"
+    },
+    {
+      "name": "200% zoom reflow equivalent: 720×450 CSS pixels at device scale 2",
+      "status": "pass"
+    },
+    {
+      "name": "malformed stored history does not break explicit save",
+      "status": "pass"
+    }
+  ]
+}

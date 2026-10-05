@@ -318,7 +318,11 @@ async function keyboardAndUnits(browser) {
     }
     record('units:copy-feedback', copied ? 'pass' : 'fail', copied ? `Clipboard contained ${copied.slice(0, 80)}.` : 'Copy did not expose clipboard text in the granted test context.')
 
-    // Units history saves itself after a pause (and on copy); clearing is undoable.
+    // Browsing, editing, swapping and copying leave history untouched.
+    await page.waitForTimeout(1500)
+    const beforeSave = await page.locator('.history-item').count()
+    record('history:no-implicit-save', beforeSave === 0 ? 'pass' : 'fail', `History entries before explicit save: ${beforeSave}.`)
+    await page.getByRole('button', { name: 'Save to history', exact: true }).press('Enter')
     await page.locator('.history-item').first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
     const clear = page.getByRole('button', { name: 'Clear all' })
     const beforeClear = await page.locator('.history-item').count()
@@ -327,7 +331,7 @@ async function keyboardAndUnits(browser) {
     const undo = page.getByRole('button', { name: 'Undo' })
     if (await undo.count()) await undo.press('Enter')
     const afterUndo = await page.locator('.history-item').count()
-    record('history:auto-save-clear-undo-keyboard', beforeClear > 0 && afterClear === 0 && afterUndo === beforeClear ? 'pass' : 'fail', `History entries before clear: ${beforeClear}; after clear: ${afterClear}; after undo: ${afterUndo}.`)
+    record('history:explicit-save-clear-undo-keyboard', beforeClear > 0 && afterClear === 0 && afterUndo === beforeClear ? 'pass' : 'fail', `History entries before clear: ${beforeClear}; after clear: ${afterClear}; after undo: ${afterUndo}.`)
 
     await page.evaluate(() => localStorage.setItem('convertal-history-v1', JSON.stringify([null, {}, { id: 'bad', tool: 'units', title: 'Bad', detail: 'Bad', timestamp: 'not-a-number' }])))
     await page.reload({ waitUntil: 'domcontentloaded' })

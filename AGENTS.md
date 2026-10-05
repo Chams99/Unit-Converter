@@ -43,6 +43,8 @@ The API is versioned under `/v1`. Define transport schemas once in `packages/con
 
 The first release does not require a database or queue for anonymous conversion or bounded synchronous image conversion. Keep short history in the browser. Add PostgreSQL for accounts, saved conversions, rate snapshots, or durable job state. Add Redis/BullMQ only for real asynchronous workloads such as larger server-side image conversion; PostgreSQL remains the durable record and queue delivery is treated as retryable and at-least-once.
 
+Unit history is opt-in through "Save to history". Category changes, typing, unit selections, swaps, copying, and replaying entries must never add history. Keep save side effects in the explicit action handler and preserve existing entries during upgrades.
+
 Health endpoints must distinguish liveness (`/healthz`) from dependency readiness (`/readyz`). Public API deployment needs request IDs, structured logs, CORS policy, request limits, trusted client-address handling, rate limiting, and timeouts. The current Compose deployment publishes only the web service through Traefik and keeps Fastify private on the backend bridge, which retains outbound currency-provider access. Rate-limit public `/api/` requests at Traefik using `RemoteAddr` by default; do not trust arbitrary `X-Forwarded-For` values.
 
 ## UI and accessibility
