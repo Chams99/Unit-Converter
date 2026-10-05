@@ -66,7 +66,10 @@ try {
   assert.ok(contrastRatio(amountColors.border, amountColors.background) >= 3, `Amount border contrast is ${contrastRatio(amountColors.border, amountColors.background).toFixed(2)}`)
   assert.match(await page.locator('#field-result').innerText(), /0\.0025[\s\S]*km/)
   assert.match(await page.locator('.converter-meta .result-meta').innerText(), /calculated to 40/i)
-  // Conversions save automatically after a short pause; there is no save button.
+  // Editing and waiting must not save; history requires an explicit action.
+  await page.waitForTimeout(1500)
+  assert.equal(await page.locator('.history-item').count(), 0)
+  await page.getByRole('button', { name: 'Save to history', exact: true }).click()
   await page.locator('.history-item').first().waitFor({ state: 'visible', timeout: 5_000 })
   assert.equal(await page.locator('.history-item').count(), 1)
   await page.waitForFunction(() => window.location.search.includes('amount=2.5'))

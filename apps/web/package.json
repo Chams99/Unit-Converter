@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "qa:ui": "node scripts/ui-audit.mjs",
     "qa:browser": "node scripts/browser-qa.mjs",
+    "qa:history": "node scripts/history-qa.mjs",
     "qa:performance": "node scripts/performance-audit.mjs"
   },
   "dependencies": {

@@ -76,6 +76,16 @@ qa:performance` only after a production build is running; set `BASE_URL` to
 that preview's origin. The performance script records local lab measurements
 and does not start or build the server.
 
+Unit history is saved only through **Save to history**. Browsing categories,
+editing values or units, swapping, restoring entries, and copying never save
+automatically. Existing history remains available; **Clear all** and **Undo**
+operate on the active tool.
+
+Run `pnpm --filter @universal-convertal/web qa:history` against a running
+production build to check this behavior. Set `BASE_URL` to its origin
+(default `http://127.0.0.1:3220`). The test blocks API requests and writes
+results and screenshots under `docs/audit-2026-10-05/history/` by default.
+
 ## Capability boundaries
 
 - Unit arithmetic uses typed dimensions, decimal factors, affine temperatures, and explicit error codes in `@simple-units/conversion`.

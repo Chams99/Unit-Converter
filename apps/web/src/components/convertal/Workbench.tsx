@@ -170,7 +170,6 @@ const DEFAULT_AMOUNT = '1'
 const MAX_URL_AMOUNT_LENGTH = 64
 const DISPLAY_DIGITS = 12
 const FULL_DIGITS = 40
-const AUTO_SAVE_DELAY_MS = 1200
 
 type UnitState = { category: string; from: string; to: string; amount: string }
 
@@ -248,7 +247,7 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
   return typeof entry.id === 'string' && typeof entry.tool === 'string' && typeof entry.title === 'string' && typeof entry.detail === 'string' && typeof entry.timestamp === 'number' && Number.isFinite(entry.timestamp) && Number.isFinite(new Date(entry.timestamp).getTime()) && (payload === undefined || (typeof payload === 'object' && payload !== null && typeof payload.amount === 'string' && typeof payload.from === 'string' && typeof payload.to === 'string' && typeof payload.category === 'string'))
 }
 
-// Shared by every tool; auto-saved unit conversions must not crowd out the rest.
+// Keep the shared local history bounded across every tool.
 const MAX_HISTORY = 30
 const HISTORY_PER_TOOL = 8
 
@@ -405,7 +404,7 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
   // Result motion starts only after the first edit so server-rendered content is never hidden.
   const [animateResult, setAnimateResult] = useState(false)
   const [animateList, setAnimateList] = useState(false)
-  const interacted = useRef(false)
+  const [saveStatus, setSaveStatus] = useState('')
   const amountRef = useRef<HTMLInputElement>(null)
   const chipScrollerRef = useRef<HTMLDivElement>(null)
 
@@ -435,6 +434,7 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
   useEffect(() => {
     if (!replay?.entry.payload || replay.entry.tool !== 'units') return
     setState(resolveUnitState(replay.entry.payload))
+    setSaveStatus('')
     amountRef.current?.focus()
   }, [replay])
 
@@ -459,7 +459,7 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
     }
   }, [state.amount, state.from, state.to])
 
-  // Memoized on the result so effects below only see new objects when values change.
+  // Reuse formatted values until the result or displayed precision changes.
   const rounded = useMemo(() => result.state === 'ready' ? formatSignificant(result.value, { maximumSignificantDigits: DISPLAY_DIGITS }) : null, [result])
   const full = useMemo(() => result.state === 'ready' && fullPrecision ? formatSignificant(result.value, { maximumSignificantDigits: FULL_DIGITS }) : null, [result, fullPrecision])
   const display = full ?? rounded
@@ -500,15 +500,14 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
     }
   }, [rounded, inputDisplay, category, fromUnit, toUnit, state.amount])
 
-  // Conversions save themselves once the user pauses; there is no save step.
-  useEffect(() => {
-    if (!historyEntry || !interacted.current) return
-    const timer = window.setTimeout(() => addHistory(historyEntry), AUTO_SAVE_DELAY_MS)
-    return () => window.clearTimeout(timer)
-  }, [historyEntry, addHistory])
+  const save = () => {
+    if (!historyEntry) return
+    addHistory(historyEntry)
+    setSaveStatus(`Saved to history: ${historyEntry.detail}`)
+  }
 
   const update = (next: (current: UnitState) => UnitState) => {
-    interacted.current = true
+    setSaveStatus('')
     setAnimateResult(true)
     setState(next)
   }
@@ -569,7 +568,7 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
               <output id="field-result" htmlFor="field-amount field-from field-to" aria-labelledby="field-result-label">
                 {display ? <><strong key={`${display.plain}-${toUnit.id}`} className={cn('result-value', animateResult && 'value-enter')}><NumberText value={display} /></strong><span className="result-unit">{toUnit.symbol}</span></> : <span className="placeholder-result">{placeholder}</span>}
               </output>
-              {display && <CopyButton value={display.plain} label="Copy result" onCopy={() => { if (historyEntry) addHistory(historyEntry) }} />}
+              {display && <CopyButton value={display.plain} label="Copy result" />}
             </div>
           </div>
           <SelectField label="To" value={toUnit.id} onChange={changeTo}>{unitOptions(targetUnits)}</SelectField>
@@ -585,7 +584,9 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
             <div className="meta-actions">
               {display && (display.rounded || fullPrecision) && <button type="button" className="text-button icon-text-button" aria-pressed={fullPrecision} onClick={() => setFullPrecision((current) => !current)}><Digits aria-hidden="true" />{fullPrecision ? 'Show rounded' : 'Show full precision'}</button>}
               <CopyButton value={shareUrl} label="Copy link" variant="text" />
+              <button type="button" className="button button-secondary" onClick={save} disabled={!historyEntry}><History aria-hidden="true" />Save to history</button>
             </div>
+            <span className="sr-only" role="status">{saveStatus}</span>
           </div>
         </div>
       </section>
@@ -907,7 +908,7 @@ function ImagesTool({ addHistory }: { addHistory: AddHistory }) {
 }
 
 const emptyHistoryCopy: Record<ToolId, { title: string; body: string }> = {
-  units: { title: 'Conversions save here automatically', body: 'Pause typing or copy a result to keep it. History stays on this device.' },
+  units: { title: 'Saved conversions appear here', body: 'Use “Save to history” to keep a result. History stays on this device.' },
   currency: { title: 'Saved quotes appear here', body: 'Save a quote to compare it later. History stays on this device.' },
   developer: { title: 'Saved transforms appear here', body: 'Save a transform summary to find it later. History stays on this device.' },
   images: { title: 'Converted images are listed here', body: 'Only file names and sizes are kept, on this device.' },
