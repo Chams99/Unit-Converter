@@ -115,6 +115,13 @@ if [[ ! "$api_rate_period" =~ ^[1-9][0-9]*(ms|s|m|h)$ ]]; then
   exit 1
 fi
 
+image_rate_average="${IMAGE_RATE_AVERAGE:-$(read_env_value IMAGE_RATE_AVERAGE)}"
+image_rate_average="${image_rate_average:-6}"
+if [[ ! "$image_rate_average" =~ ^[1-9][0-9]*$ ]]; then
+  printf 'IMAGE_RATE_AVERAGE must be a positive integer.\n' >&2
+  exit 1
+fi
+
 if ! command -v docker >/dev/null 2>&1; then
   printf 'Docker is required on the deployment host.\n' >&2
   exit 1

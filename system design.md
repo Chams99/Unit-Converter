@@ -1,7 +1,7 @@
 # Universal Convertal system design
 
 **Status:** first-release product and visual system  
-**Updated:** 2026-10-04
+**Updated:** 2026-10-05
 
 Universal Convertal should feel like a dependable technical utility: quick for a one-off conversion, clear when a value is unavailable or stale, and broad enough to support expert workflows without becoming a crowded toolbox. The interface should establish trust through visible units, source metadata, precision, and honest capability boundaries.
 
@@ -140,3 +140,12 @@ Keep the default route largely static and lazy-load heavy image/developer module
 - Result formatting distinguishes display precision from calculation precision and exposes the unit/symbol clearly.
 - Reduced motion removes nonessential animation, and scripts failing to load still leave meaningful headings and form labels visible.
 - The same workflow survives direct route load, client navigation, browser back/forward, dark mode, 200% zoom, and a narrow touch viewport.
+## Resource hardening — 2026-10-05
+
+The synchronous image route now uses short-lived child processes, with hard
+termination before its concurrency slot is released. Uploaded images/results
+remain buffers; there is no database or durable upload storage. Edge body,
+rate and concurrency limits combine with global application/provider budgets
+and read-only containers capped for CPU, RAM, swap and task count.
+See [abuse protection](docs/abuse-protection.md) for enforced defaults,
+verification and the remaining shared Traefik/network requirements.

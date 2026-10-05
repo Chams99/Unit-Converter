@@ -63,4 +63,21 @@ describe('currency providers', () => {
       (error: unknown) => error instanceof CurrencyProviderError && error.code === 'provider_invalid_response',
     );
   });
+
+  it('times out a provider that sends headers but stalls its body', async () => {
+    let aborted = false;
+    await assert.rejects(fetchFrankfurterRate('EUR', 'TND', {
+      timeoutMs: 250,
+      fetchImpl: async (_input, init) => {
+        init?.signal?.addEventListener('abort', () => { aborted = true; });
+        return new Response(new ReadableStream({ start() { /* never completes */ } }));
+      },
+    }), /did not respond in time/);
+    assert.equal(aborted, true);
+  });
+
+  it('rejects null provider data with a stable provider error', async () => {
+    await assert.rejects(fetchFrankfurterRate('EUR', 'TND', { fetchImpl: async () => new Response('null') }),
+      (error: unknown) => error instanceof CurrencyProviderError && error.code === 'provider_invalid_response');
+  });
 });
