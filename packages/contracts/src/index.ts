@@ -19,6 +19,8 @@ export const errorCodes = [
   'invalid_options',
   'conversion_failed',
   'output_too_large',
+  'concurrency_limit',
+  'rate_limited',
   'internal_error',
 ] as const;
 

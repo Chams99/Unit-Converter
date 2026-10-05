@@ -109,4 +109,53 @@ describe('API routes', () => {
       await app.close();
     }
   });
+
+  it('enforces a global budget even when clients change forwarded headers', async () => {
+    const app = await buildApp({ limits: { apiBurst: 2, apiPerMinute: 1 } });
+    try {
+      for (let index = 0; index < 2; index++) assert.equal((await app.inject({ url: '/v1/units', headers: { 'x-forwarded-for': `192.0.2.${index}` } })).statusCode, 200);
+      const blocked = await app.inject({ url: '/v1/units', headers: { 'x-forwarded-for': '198.51.100.1', 'x-device-id': 'new-device' } });
+      assert.equal(blocked.statusCode, 429);
+      assert.equal(blocked.json().code, 'rate_limited');
+      assert.equal(blocked.headers['retry-after'], '60');
+      assert.equal((await app.inject({ url: '/healthz' })).statusCode, 200);
+    } finally { await app.close(); }
+  });
+
+  it('rejects oversized JSON before conversion', async () => {
+    const app = await buildApp();
+    try {
+      const response = await app.inject({ method: 'POST', url: '/v1/convert', payload: { value: '1'.repeat(17_000), from: 'meter', to: 'centimeter' } });
+      assert.equal(response.statusCode, 413);
+      assert.equal(response.json().code, 'input_too_large');
+    } finally { await app.close(); }
+  });
+
+  it('coalesces concurrent currency requests into one provider call', async () => {
+    let calls = 0;
+    let resolve!: (response: Response) => void;
+    const app = await buildApp({ currency: { provider: 'frankfurter', options: { fetchImpl: async () => { calls += 1; return new Promise<Response>((done) => { resolve = done; }); } } } });
+    try {
+      const requests = Array.from({ length: 10 }, () => app.inject({ url: '/v1/currency/rates?base=EUR&quote=TND' }));
+      await new Promise<void>((done) => setImmediate(done));
+      assert.equal(calls, 1);
+      resolve(new Response(JSON.stringify({ date: '2026-10-03', base: 'EUR', quote: 'TND', rate: 3.4 })));
+      const responses = await Promise.all(requests);
+      assert.ok(responses.every((response) => response.statusCode === 200));
+    } finally { await app.close(); }
+  });
+
+  it('caps outgoing provider calls across different pairs and caches failures', async () => {
+    let calls = 0;
+    const app = await buildApp({ currency: { provider: 'frankfurter', options: { fetchImpl: async () => { calls += 1; return new Response('', { status: 503 }); } } } });
+    try {
+      const path = '/v1/currency/rates?base=EUR&quote=TND';
+      assert.equal((await app.inject({ url: path })).statusCode, 503);
+      assert.equal((await app.inject({ url: path })).statusCode, 503);
+      assert.equal(calls, 1);
+      for (const quote of ['USD', 'GBP', 'JPY', 'CHF']) assert.equal((await app.inject({ url: `/v1/currency/rates?base=EUR&quote=${quote}` })).statusCode, 503);
+      assert.equal((await app.inject({ url: '/v1/currency/rates?base=EUR&quote=MAD' })).statusCode, 429);
+      assert.equal(calls, 5);
+    } finally { await app.close(); }
+  });
 });

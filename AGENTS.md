@@ -35,6 +35,8 @@ Developer tools should be deterministic and local: URL encoding, Base64, JSON, t
 
 First release includes a synchronous, bounded Sharp image endpoint for small uploaded raster files. Validate content signatures, bytes, decoded dimensions, output size, operation time, and concurrency before returning an artifact. Keep browser metadata checks fast and local where practical. Do not put a shell command or arbitrary remote URL in a request path. A later worker must use fixed operation allowlists, generated storage keys, idempotency, cleanup, and isolation.
 
+The current image endpoint starts a one-operation child process in `apps/api/src/services/image-worker.ts`; it has no durable job queue or storage. Keep admission slots until the child actually exits on completion, timeout or cancellation. Never replace hard process termination with a promise race that leaves native work running. Retain the read-only container filesystems and bounded RAM-backed temporary storage. See [abuse protection](docs/abuse-protection.md) for actual limits and shared-proxy requirements.
+
 ## API and data rules
 
 The API is versioned under `/v1`. Define transport schemas once in `packages/contracts`, register them with Fastify, and generate an OpenAPI 3.1 document and typed client. Use stable error envelopes such as `{ code, message, details?, requestId }`; never expose provider internals, stack traces, credentials, or full personal inputs in logs.

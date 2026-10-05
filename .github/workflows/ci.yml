@@ -43,9 +43,10 @@ jobs:
     timeout-minutes: 20
     env:
       # The compose file requires an existing Traefik network and production
-      # domain. This isolated job provides safe placeholders; it starts no proxy.
+      # domain. This isolated job starts a private proxy with no public ACME.
       TRAEFIK_NETWORK: convertal-ci-traefik
       CONVERTAL_DOMAIN: convertal.ci.invalid
+      COMPOSE_FILE: docker-compose.yml:docker-compose.ci.yml
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -67,6 +68,21 @@ jobs:
 
       - name: Smoke test deployed web and API
         run: docker compose --env-file .env.deploy -p convertal-ci exec -T web node --input-type=module < scripts/verify-deployment.mjs
+
+      - name: Check runtime resource ceilings
+        run: |
+          for service in api web; do
+            id=$(docker compose --env-file .env.deploy -p convertal-ci ps -q "$service")
+            read -r readonly memory swap cpu pids <<< "$(docker inspect --format '{{.HostConfig.ReadonlyRootfs}} {{.HostConfig.Memory}} {{.HostConfig.MemorySwap}} {{.HostConfig.NanoCpus}} {{.HostConfig.PidsLimit}}' "$id")"
+            test "$readonly" = true
+            test "$memory" -gt 0
+            test "$swap" = "$memory"
+            test "$cpu" -gt 0
+            test "$pids" -gt 0
+          done
+
+      - name: Test proxy upload and abuse limits
+        run: docker compose --env-file .env.deploy -p convertal-ci exec -T web node --input-type=module < scripts/verify-abuse-edge.mjs
 
       - name: Show bounded container logs on failure
         if: failure()

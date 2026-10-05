@@ -1,0 +1,27 @@
+# Used only by Linux CI via COMPOSE_FILE. No host ports or public ACME requests.
+services:
+  web:
+    labels:
+      traefik.http.routers.convertal-web.tls.certresolver: ""
+      traefik.http.routers.convertal-api.tls.certresolver: ""
+      traefik.http.routers.convertal-images.tls.certresolver: ""
+  proxy:
+    image: traefik:v3
+    command:
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.transport.respondingtimeouts.readtimeout=10s
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=${TRAEFIK_NETWORK}
+      - --api.dashboard=false
+      - --log.level=ERROR
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik
+    mem_limit: 128m
+    pids_limit: 64
+    read_only: true
+    depends_on:
+      web:
+        condition: service_healthy

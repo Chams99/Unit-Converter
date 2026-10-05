@@ -1,34 +1,25 @@
 import sharp, { type FormatEnum, type Metadata } from 'sharp';
-
-export type ImageOutputFormat = 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' | 'gif';
-export type ImageConvertOptions = {
-  readonly outputFormat: ImageOutputFormat;
-  readonly width?: number;
-  readonly height?: number;
-  readonly quality?: number;
-  readonly maxInputBytes?: number;
-  readonly maxInputPixels?: number;
-  readonly maxOutputBytes?: number;
-  readonly timeoutMs?: number;
-};
-export type ImageArtifact = {
-  readonly data: Buffer;
-  readonly mimeType: string;
-  readonly format: ImageOutputFormat;
-  readonly width: number;
-  readonly height: number;
-  readonly bytes: number;
-  readonly inputFormat: string;
-  readonly inputBytes: number;
-};
-
-export class ImageConversionError extends Error {
-  readonly code: 'input_too_large' | 'pixels_too_large' | 'unsupported_format' | 'invalid_options' | 'conversion_failed' | 'output_too_large' | 'concurrency_limit';
-  constructor(code: ImageConversionError['code'], message: string) { super(message); this.name = 'ImageConversionError'; this.code = code; }
-}
+import { ImageConversionError, type ImageArtifact, type ImageConvertOptions, type ImageOutputFormat } from './image-types.js';
+export { ImageConversionError, type ImageArtifact, type ImageConvertOptions, type ImageOutputFormat } from './image-types.js';
 
 const mimeTypes: Record<ImageOutputFormat, string> = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', avif: 'image/avif', tiff: 'image/tiff', gif: 'image/gif' };
 const formats: readonly ImageOutputFormat[] = ['jpeg', 'png', 'webp', 'avif', 'tiff', 'gif'];
+
+function hasRasterSignature(input: Buffer): boolean {
+  if (input.length >= 8 && input.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return true;
+  if (input.length >= 3 && input[0] === 255 && input[1] === 216 && input[2] === 255) return true;
+  if (input.subarray(0, 4).toString('ascii') === 'RIFF' && input.subarray(8, 12).toString('ascii') === 'WEBP') return true;
+  if (['GIF87a', 'GIF89a'].includes(input.subarray(0, 6).toString('ascii'))) return true;
+  if (['49492a00', '4d4d002a', '49492b00', '4d4d002b'].includes(input.subarray(0, 4).toString('hex'))) return true;
+  if (input.length >= 16 && input.subarray(4, 8).toString('ascii') === 'ftyp') {
+    const size = input.readUInt32BE(0);
+    if (size < 16 || size > Math.min(input.length, 1024)) return false;
+    for (let offset = 8; offset + 4 <= size; offset += 4) {
+      if (offset !== 12 && ['avif', 'avis'].includes(input.subarray(offset, offset + 4).toString('ascii'))) return true;
+    }
+  }
+  return false;
+}
 
 function positiveLimit(value: number, label: string, maximum: number): void {
   if (!Number.isSafeInteger(value) || value <= 0 || value > maximum) throw new ImageConversionError('invalid_options', `${label} is outside the allowed range.`);
@@ -58,6 +49,7 @@ export async function convertImage(input: Buffer | Uint8Array, options: ImageCon
   if (options.quality !== undefined && (!Number.isInteger(options.quality) || options.quality < 1 || options.quality > 100)) throw new ImageConversionError('invalid_options', 'quality must be an integer from 1 to 100.');
 
   const source = Buffer.from(input);
+  if (!hasRasterSignature(source)) throw new ImageConversionError('unsupported_format', 'Input is not an allowed raster image.');
   let metadata: Metadata;
   try {
     // Metadata reads the header without decoding all pixels. Read it without

@@ -95,6 +95,21 @@ use. These ceilings have not been load-tested. Building on the VPS also needs
 temporary disk and memory headroom beyond the running-container limits; the
 required VPS capacity has not been measured.
 
+The current deployment also caps API CPU at 1 core and web CPU at 0.5 core,
+disables additional swap allowance and core dumps, limits tasks/file descriptors,
+and uses read-only application filesystems with bounded RAM-backed scratch
+directories. The higher-priority image router adds 6 requests/minute per IP,
+a burst of 2, upload/output bounds, and 2 global in-flight uploads. The API adds
+global admission and currency-provider quotas, hard image-process cancellation,
+and upload deadlines. Existing `.env.deploy` files receive the new defaults
+without being overwritten. See [abuse protection](abuse-protection.md) for the
+full limits, image retention behavior, tests and operational boundaries.
+
+The shared Traefik must have finite read/write timeouts to close stalled uploads
+and slow response readers. Its live settings cannot be changed through
+Convertal's labels; the guide includes the relevant static settings to check.
+This deployment does not claim to protect against all attacks or network DDoS.
+
 The API image uses pnpm's production-only deploy output for the API and its
 workspace dependencies. The web image uses Next.js standalone output with
 repo-root tracing and includes its public and .next/static assets. Both images

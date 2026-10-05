@@ -11,6 +11,17 @@ services:
     restart: unless-stopped
     init: true
     mem_limit: "${API_MEMORY_LIMIT:-1g}"
+    memswap_limit: "${API_MEMORY_LIMIT:-1g}"
+    cpus: "${API_CPU_LIMIT:-1.0}"
+    pids_limit: 96
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+    ulimits:
+      core: 0
+      nofile:
+        soft: 1024
+        hard: 1024
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -20,6 +31,7 @@ services:
       HOST: 0.0.0.0
       NODE_ENV: production
       PORT: "8787"
+      NODE_OPTIONS: --max-old-space-size=192 --disable-proto=throw
     expose:
       - "8787"
     healthcheck:
@@ -51,6 +63,18 @@ services:
     restart: unless-stopped
     init: true
     mem_limit: "${WEB_MEMORY_LIMIT:-512m}"
+    memswap_limit: "${WEB_MEMORY_LIMIT:-512m}"
+    cpus: "${WEB_CPU_LIMIT:-0.5}"
+    pids_limit: 64
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+      - /app/apps/web/.next/cache:size=32m,mode=0700,uid=1000,gid=1000,noexec,nosuid
+    ulimits:
+      core: 0
+      nofile:
+        soft: 1024
+        hard: 1024
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -59,6 +83,7 @@ services:
       HOSTNAME: 0.0.0.0
       NODE_ENV: production
       PORT: "3000"
+      NODE_OPTIONS: --max-old-space-size=256 --disable-proto=throw
     expose:
       - "3000"
     depends_on:
@@ -88,17 +113,49 @@ services:
       traefik.http.routers.convertal-web.tls.certresolver: "${TRAEFIK_CERT_RESOLVER:-myresolver}"
       traefik.http.routers.convertal-web.priority: "10"
       traefik.http.routers.convertal-web.service: convertal-web
+      traefik.http.routers.convertal-web.middlewares: convertal-web-limit,convertal-scope,convertal-web-active
       traefik.http.routers.convertal-api.rule: "Host(`${CONVERTAL_DOMAIN:?Set CONVERTAL_DOMAIN in .env.deploy}`) && PathPrefix(`/api/`)"
       traefik.http.routers.convertal-api.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
       traefik.http.routers.convertal-api.tls: "true"
       traefik.http.routers.convertal-api.tls.certresolver: "${TRAEFIK_CERT_RESOLVER:-myresolver}"
       traefik.http.routers.convertal-api.priority: "100"
       traefik.http.routers.convertal-api.service: convertal-web
-      traefik.http.routers.convertal-api.middlewares: convertal-api-limit
+      traefik.http.routers.convertal-api.middlewares: convertal-api-limit,convertal-scope,convertal-api-active,convertal-api-body
+      # A narrower router protects expensive uploads before Next.js receives them.
+      traefik.http.routers.convertal-images.rule: "Host(`${CONVERTAL_DOMAIN:?Set CONVERTAL_DOMAIN in .env.deploy}`) && PathPrefix(`/api/v1/image/`)"
+      traefik.http.routers.convertal-images.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
+      traefik.http.routers.convertal-images.tls: "true"
+      traefik.http.routers.convertal-images.tls.certresolver: "${TRAEFIK_CERT_RESOLVER:-myresolver}"
+      traefik.http.routers.convertal-images.priority: "200"
+      traefik.http.routers.convertal-images.service: convertal-web
+      traefik.http.routers.convertal-images.middlewares: convertal-api-limit,convertal-image-limit,convertal-scope,convertal-image-active,convertal-image-body
       traefik.http.services.convertal-web.loadbalancer.server.port: "3000"
       traefik.http.middlewares.convertal-api-limit.ratelimit.average: "${API_RATE_AVERAGE:-60}"
       traefik.http.middlewares.convertal-api-limit.ratelimit.period: "${API_RATE_PERIOD:-1m}"
       traefik.http.middlewares.convertal-api-limit.ratelimit.burst: "${API_RATE_BURST:-20}"
+      traefik.http.middlewares.convertal-image-limit.ratelimit.average: "${IMAGE_RATE_AVERAGE:-6}"
+      traefik.http.middlewares.convertal-image-limit.ratelimit.period: 1m
+      traefik.http.middlewares.convertal-image-limit.ratelimit.burst: "2"
+      traefik.http.middlewares.convertal-web-limit.ratelimit.average: "240"
+      traefik.http.middlewares.convertal-web-limit.ratelimit.period: 1m
+      traefik.http.middlewares.convertal-web-limit.ratelimit.burst: "120"
+      # Override the grouping header ourselves: clients cannot create new
+      # concurrency buckets by sending different headers or Host ports.
+      traefik.http.middlewares.convertal-scope.headers.customrequestheaders.X-Convertal-Scope: convertal
+      traefik.http.middlewares.convertal-web-active.inflightreq.amount: "64"
+      traefik.http.middlewares.convertal-web-active.inflightreq.sourcecriterion.requestheadername: X-Convertal-Scope
+      traefik.http.middlewares.convertal-api-active.inflightreq.amount: "32"
+      traefik.http.middlewares.convertal-api-active.inflightreq.sourcecriterion.requestheadername: X-Convertal-Scope
+      traefik.http.middlewares.convertal-image-active.inflightreq.amount: "2"
+      traefik.http.middlewares.convertal-image-active.inflightreq.sourcecriterion.requestheadername: X-Convertal-Scope
+      traefik.http.middlewares.convertal-api-body.buffering.maxrequestbodybytes: "16384"
+      traefik.http.middlewares.convertal-api-body.buffering.memrequestbodybytes: "65536"
+      traefik.http.middlewares.convertal-api-body.buffering.maxresponsebodybytes: "262144"
+      traefik.http.middlewares.convertal-api-body.buffering.memresponsebodybytes: "1048576"
+      traefik.http.middlewares.convertal-image-body.buffering.maxrequestbodybytes: "10502144"
+      traefik.http.middlewares.convertal-image-body.buffering.memrequestbodybytes: "16777216"
+      traefik.http.middlewares.convertal-image-body.buffering.maxresponsebodybytes: "26214400"
+      traefik.http.middlewares.convertal-image-body.buffering.memresponsebodybytes: "33554432"
     networks:
       - backend
       - traefik

@@ -44,7 +44,7 @@ export class CurrencyProviderError extends Error {
 
 function validCode(code: string): boolean { return /^[A-Z]{3}$/.test(code); }
 
-async function readBoundedJson(response: Response, maximumBytes: number): Promise<unknown> {
+async function readBoundedJson(response: Response, maximumBytes: number, signal: AbortSignal): Promise<unknown> {
   const declaredLength = response.headers.get('content-length');
   if (declaredLength && Number(declaredLength) > maximumBytes) {
     throw new CurrencyProviderError('provider_invalid_response', 'Currency provider response is too large.');
@@ -57,6 +57,9 @@ async function readBoundedJson(response: Response, maximumBytes: number): Promis
     }
   } else {
     const reader = response.body.getReader();
+    const cancel = () => { void reader.cancel().catch(() => undefined); };
+    signal.addEventListener('abort', cancel, { once: true });
+    if (signal.aborted) cancel();
     const chunks: Uint8Array[] = [];
     let total = 0;
     try {
@@ -71,6 +74,7 @@ async function readBoundedJson(response: Response, maximumBytes: number): Promis
         chunks.push(next.value);
       }
     } finally {
+      signal.removeEventListener('abort', cancel);
       reader.releaseLock();
     }
     const bytes = new Uint8Array(total);
@@ -88,12 +92,13 @@ async function readBoundedJson(response: Response, maximumBytes: number): Promis
   }
 }
 
-async function fetchWithTimeout(
+async function fetchBoundedJson(
   fetchImpl: typeof fetch,
   input: string | URL,
   init: RequestInit,
   timeoutMs: number,
-): Promise<Response> {
+  maximumBytes: number,
+): Promise<unknown> {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -103,12 +108,24 @@ async function fetchWithTimeout(
         reject(new CurrencyProviderError('provider_unavailable', 'Currency provider did not respond in time.'));
       }, timeoutMs);
     });
-    return await Promise.race([fetchImpl(input, { ...init, signal: controller.signal }), timeout]);
+    const work = (async () => {
+      const response = await fetchImpl(input, { ...init, signal: controller.signal });
+      if (response.status === 429) throw new CurrencyProviderError('provider_rate_limited', 'Currency provider rate limit reached.', 429);
+      if (!response.ok) throw new CurrencyProviderError('provider_unavailable', 'Currency provider request failed.', response.status);
+      const body = await readBoundedJson(response, maximumBytes, controller.signal);
+      if (!body || typeof body !== 'object' || Array.isArray(body)) throw new CurrencyProviderError('provider_invalid_response', 'Currency provider returned invalid data.');
+      return body;
+    })();
+    // Keep the timer alive through body streaming, not just response headers.
+    return await Promise.race([work, timeout]);
   } catch (error) {
     if (error instanceof CurrencyProviderError) throw error;
     throw new CurrencyProviderError('provider_unavailable', 'Currency provider did not respond in time.');
   } finally {
     if (timer) clearTimeout(timer);
+    // Also close unread error/oversize bodies; otherwise a provider can leave
+    // sockets occupied after the quota slot has already been released.
+    controller.abort();
   }
 }
 
@@ -133,10 +150,7 @@ export async function fetchCurrencyApiRate(base: string, quote: string, options:
   }
   url.searchParams.set('base_currency', normalizedBase);
   url.searchParams.set('currencies', normalizedQuote);
-  const response = await fetchWithTimeout(fetchImpl, url, { headers: { apikey: options.apiKey, accept: 'application/json' } }, timeoutMs);
-  if (response.status === 429) throw new CurrencyProviderError('provider_rate_limited', 'Currency provider rate limit reached.', response.status);
-  if (!response.ok) throw new CurrencyProviderError('provider_unavailable', 'Currency provider request failed.', response.status);
-  const body = await readBoundedJson(response, 64 * 1024) as CurrencyRateResponse;
+  const body = await fetchBoundedJson(fetchImpl, url, { headers: { apikey: options.apiKey, accept: 'application/json' } }, timeoutMs, 64 * 1024) as CurrencyRateResponse;
   const entry = body.data?.[normalizedQuote];
   if (!entry || entry.code !== normalizedQuote || typeof entry.value !== 'number' || !Number.isFinite(entry.value) || entry.value <= 0) {
     throw new CurrencyProviderError('provider_invalid_response', 'Currency provider returned no valid rate for the requested currency.');
@@ -163,10 +177,7 @@ export async function fetchFrankfurterRate(base: string, quote: string, options:
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? (() => new Date());
   const endpoint = options.endpoint ?? 'https://api.frankfurter.dev/v2';
-  const response = await fetchWithTimeout(fetchImpl, `${endpoint.replace(/\/$/, '')}/rate/${normalizedBase.toLowerCase()}/${normalizedQuote.toLowerCase()}`, { headers: { accept: 'application/json' } }, timeoutMs);
-  if (response.status === 429) throw new CurrencyProviderError('provider_rate_limited', 'Currency provider rate limit reached.', response.status);
-  if (!response.ok) throw new CurrencyProviderError('provider_unavailable', 'Currency provider request failed.', response.status);
-  const body = await readBoundedJson(response, 32 * 1024) as FrankfurterResponse;
+  const body = await fetchBoundedJson(fetchImpl, `${endpoint.replace(/\/$/, '')}/rate/${normalizedBase.toLowerCase()}/${normalizedQuote.toLowerCase()}`, { headers: { accept: 'application/json' } }, timeoutMs, 32 * 1024) as FrankfurterResponse;
   if (body.base?.toUpperCase() !== normalizedBase || body.quote?.toUpperCase() !== normalizedQuote || typeof body.rate !== 'number' || !Number.isFinite(body.rate) || body.rate <= 0 || !body.date || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) throw new CurrencyProviderError('provider_invalid_response', 'Currency provider returned no valid rate for the requested currency.');
   const fetchedAt = now();
   const sourceMillis = Date.parse(`${body.date}T00:00:00Z`);

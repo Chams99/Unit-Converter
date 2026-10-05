@@ -20,6 +20,11 @@ describe('bounded image conversion', () => {
     await assert.rejects(convertImage(onePixelPng, { outputFormat: 'jpeg', maxInputBytes: 8 }), (error: unknown) => error instanceof ImageConversionError && error.code === 'input_too_large');
   });
 
+  it('rejects SVG and arbitrary text before passing it to a decoder', async () => {
+    await assert.rejects(convertImage(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.invalid/a.png"/></svg>'), { outputFormat: 'webp' }),
+      (error: unknown) => error instanceof ImageConversionError && error.code === 'unsupported_format');
+  });
+
   it('rejects decoded pixels and encoded output beyond their limits', async () => {
     const twoByTwo = await sharp({ create: { width: 2, height: 2, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 1 } } }).png().toBuffer();
     await assert.rejects(convertImage(twoByTwo, { outputFormat: 'webp', maxInputPixels: 3 }), (error: unknown) => error instanceof ImageConversionError && error.code === 'pixels_too_large');
