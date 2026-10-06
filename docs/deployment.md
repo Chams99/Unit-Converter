@@ -35,6 +35,11 @@ network value only if this Traefik installation uses a different existing
 network. CURRENCYAPI_API_KEY is optional; an empty value selects the no-key
 Frankfurter adapter.
 
+The Compose build also passes `https://$CONVERTAL_DOMAIN` to the web build as
+CONVERTAL_SITE_URL. Next.js bakes it into the static pages so link previews
+reference an absolute `/opengraph-image.png` URL; a domain change therefore
+needs a rebuild, not only a restart.
+
 Start the app with the deployment helper:
 
 ~~~sh

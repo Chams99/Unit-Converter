@@ -6,9 +6,18 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
+const title = 'Universal Convertal — precise tools for everyday work'
+const description = 'Units, currency, developer, and bounded image conversion tools with clear results and honest context.'
+// Link previews need an absolute image URL; deployments pass their public origin at build time.
+const siteUrl = process.env.CONVERTAL_SITE_URL
+
 export const metadata: Metadata = {
-  title: 'Universal Convertal — precise tools for everyday work',
-      description: 'Units, currency, developer, and bounded image conversion tools with clear results and honest context.',
+  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
+  title,
+  description,
+  // app/opengraph-image.png supplies the preview image; regenerate it with `pnpm --filter @universal-convertal/web cover`.
+  openGraph: { type: 'website', siteName: 'Universal Convertal', title, description },
+  twitter: { card: 'summary_large_image', title, description },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },

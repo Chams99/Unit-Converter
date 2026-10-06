@@ -1,5 +1,9 @@
 # Universal Convertal
 
+[![Universal Convertal unit converter showing 26.2 miles converted to 42.1648128 kilometers](docs/portfolio/cover-dark.png)](https://units.chames.tn)
+
+**Live:** [units.chames.tn](https://units.chames.tn)
+
 Universal Convertal is a fast, honest conversion workspace for physical units, currency, developer transforms, and bounded image conversion. Ordinary unit and developer calculations run through the shared TypeScript domain package so the browser can respond without a network round trip. The API provides provider-backed currency data, parity endpoints, and small synchronous Sharp image conversions.
 
 ## Workspace
@@ -85,6 +89,18 @@ Run `pnpm --filter @universal-convertal/web qa:history` against a running
 production build to check this behavior. Set `BASE_URL` to its origin
 (default `http://127.0.0.1:3220`). The test blocks API requests and writes
 results and screenshots under `docs/audit-2026-10-05/history/` by default.
+
+## Cover and link-preview images
+
+`docs/portfolio/cover-{dark,light}.png` (16:9) and the link-preview image
+`apps/web/app/opengraph-image.png` (1200×630) are captured from the real unit
+converter. After a UI change, start a production build and regenerate them,
+then rebuild so Next.js serves the new preview:
+
+```powershell
+$env:BASE_URL = 'http://127.0.0.1:3230'
+pnpm --filter @universal-convertal/web cover
+```
 
 ## Capability boundaries
 

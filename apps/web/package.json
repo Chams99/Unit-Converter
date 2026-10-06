@@ -11,7 +11,8 @@
     "qa:ui": "node scripts/ui-audit.mjs",
     "qa:browser": "node scripts/browser-qa.mjs",
     "qa:history": "node scripts/history-qa.mjs",
-    "qa:performance": "node scripts/performance-audit.mjs"
+    "qa:performance": "node scripts/performance-audit.mjs",
+    "cover": "node scripts/cover-capture.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",

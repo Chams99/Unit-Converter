@@ -19,8 +19,10 @@ RUN pnpm install --frozen-lockfile
 
 FROM workspace AS build
 ARG CONVERTAL_API_URL=http://api:8787
+# Public origin for absolute link-preview URLs; empty leaves Next.js defaults.
+ARG CONVERTAL_SITE_URL=
 COPY . .
-RUN CONVERTAL_API_URL="$CONVERTAL_API_URL" pnpm build
+RUN CONVERTAL_API_URL="$CONVERTAL_API_URL" CONVERTAL_SITE_URL="$CONVERTAL_SITE_URL" pnpm build
 
 # pnpm deploy creates a production-only, self-contained workspace installation.
 RUN pnpm --filter @universal-convertal/api deploy --prod --legacy --frozen-lockfile /tmp/api-deploy \
