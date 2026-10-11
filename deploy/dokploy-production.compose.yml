@@ -9,17 +9,10 @@ services:
     restart: unless-stopped
     init: true
     mem_limit: 1g
-    memswap_limit: 1g
-    cpus: "1.0"
-    pids_limit: 96
+    memswap_limit: 2g
     read_only: true
     tmpfs:
       - /tmp:size=16m,mode=1777,noexec,nosuid
-    ulimits:
-      core: 0
-      nofile:
-        soft: 1024
-        hard: 1024
     security_opt:
       - no-new-privileges:true
     cap_drop: [ALL]
@@ -63,18 +56,11 @@ services:
     restart: unless-stopped
     init: true
     mem_limit: 512m
-    memswap_limit: 512m
-    cpus: "0.5"
-    pids_limit: 64
+    memswap_limit: 1g
     read_only: true
     tmpfs:
       - /tmp:size=16m,mode=1777,noexec,nosuid
       - /app/apps/web/.next/cache:size=32m,mode=0700,uid=1000,gid=1000,noexec,nosuid
-    ulimits:
-      core: 0
-      nofile:
-        soft: 1024
-        hard: 1024
     security_opt:
       - no-new-privileges:true
     cap_drop: [ALL]
@@ -112,21 +98,21 @@ services:
       traefik.http.routers.convertal-web.tls.certresolver: letsencrypt
       traefik.http.routers.convertal-web.priority: "10"
       traefik.http.routers.convertal-web.service: convertal-web
-      traefik.http.routers.convertal-web.middlewares: convertal-web-limit,convertal-scope,convertal-web-active
+      traefik.http.routers.convertal-web.middlewares: default-chain@file,convertal-web-limit,convertal-scope,convertal-web-active
       traefik.http.routers.convertal-api.rule: "Host(`units.chames.tn`) && PathPrefix(`/api/`)"
       traefik.http.routers.convertal-api.entrypoints: websecure
       traefik.http.routers.convertal-api.tls: "true"
       traefik.http.routers.convertal-api.tls.certresolver: letsencrypt
       traefik.http.routers.convertal-api.priority: "100"
       traefik.http.routers.convertal-api.service: convertal-web
-      traefik.http.routers.convertal-api.middlewares: convertal-api-limit,convertal-scope,convertal-api-active,convertal-api-body
+      traefik.http.routers.convertal-api.middlewares: default-chain@file,convertal-api-limit,convertal-scope,convertal-api-active,convertal-api-body
       traefik.http.routers.convertal-images.rule: "Host(`units.chames.tn`) && PathPrefix(`/api/v1/image/`)"
       traefik.http.routers.convertal-images.entrypoints: websecure
       traefik.http.routers.convertal-images.tls: "true"
       traefik.http.routers.convertal-images.tls.certresolver: letsencrypt
       traefik.http.routers.convertal-images.priority: "200"
       traefik.http.routers.convertal-images.service: convertal-web
-      traefik.http.routers.convertal-images.middlewares: convertal-api-limit,convertal-image-limit,convertal-scope,convertal-image-active,convertal-image-body
+      traefik.http.routers.convertal-images.middlewares: default-chain@file,convertal-api-limit,convertal-image-limit,convertal-scope,convertal-image-active,convertal-image-body
       traefik.http.services.convertal-web.loadbalancer.server.port: "3000"
       traefik.http.middlewares.convertal-api-limit.ratelimit.average: "60"
       traefik.http.middlewares.convertal-api-limit.ratelimit.period: 1m
