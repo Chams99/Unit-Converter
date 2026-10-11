@@ -1,0 +1,151 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: api
+      args:
+        NODE_IMAGE: node:24-bookworm-slim
+    restart: unless-stopped
+    init: true
+    mem_limit: 1g
+    memswap_limit: 2g
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    env_file:
+      - path: /etc/dokploy/private-runtime/convertal/api.runtime.env
+        required: true
+        format: raw
+    environment:
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      PORT: "8787"
+      NODE_OPTIONS: --max-old-space-size=192 --disable-proto=throw
+    expose:
+      - "8787"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8787/healthz').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    networks:
+      - backend
+
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: web
+      args:
+        NODE_IMAGE: node:24-bookworm-slim
+        CONVERTAL_API_URL: http://api:8787
+    restart: unless-stopped
+    init: true
+    mem_limit: 512m
+    memswap_limit: 1g
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+      - /app/apps/web/.next/cache:size=32m,mode=0700,uid=1000,gid=1000,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    environment:
+      HOSTNAME: 0.0.0.0
+      NODE_ENV: production
+      PORT: "3000"
+      NODE_OPTIONS: --max-old-space-size=256 --disable-proto=throw
+    expose:
+      - "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: dokploy-network
+      traefik.http.routers.convertal-web.rule: "Host(`units.chames.tn`)"
+      traefik.http.routers.convertal-web.entrypoints: websecure
+      traefik.http.routers.convertal-web.tls: "true"
+      traefik.http.routers.convertal-web.tls.certresolver: letsencrypt
+      traefik.http.routers.convertal-web.priority: "10"
+      traefik.http.routers.convertal-web.service: convertal-web
+      traefik.http.routers.convertal-web.middlewares: default-chain@file,convertal-web-limit,convertal-scope,convertal-web-active
+      traefik.http.routers.convertal-api.rule: "Host(`units.chames.tn`) && PathPrefix(`/api/`)"
+      traefik.http.routers.convertal-api.entrypoints: websecure
+      traefik.http.routers.convertal-api.tls: "true"
+      traefik.http.routers.convertal-api.tls.certresolver: letsencrypt
+      traefik.http.routers.convertal-api.priority: "100"
+      traefik.http.routers.convertal-api.service: convertal-web
+      traefik.http.routers.convertal-api.middlewares: default-chain@file,convertal-api-limit,convertal-scope,convertal-api-active,convertal-api-body
+      traefik.http.routers.convertal-images.rule: "Host(`units.chames.tn`) && PathPrefix(`/api/v1/image/`)"
+      traefik.http.routers.convertal-images.entrypoints: websecure
+      traefik.http.routers.convertal-images.tls: "true"
+      traefik.http.routers.convertal-images.tls.certresolver: letsencrypt
+      traefik.http.routers.convertal-images.priority: "200"
+      traefik.http.routers.convertal-images.service: convertal-web
+      traefik.http.routers.convertal-images.middlewares: default-chain@file,convertal-api-limit,convertal-image-limit,convertal-scope,convertal-image-active,convertal-image-body
+      traefik.http.services.convertal-web.loadbalancer.server.port: "3000"
+      traefik.http.middlewares.convertal-api-limit.ratelimit.average: "60"
+      traefik.http.middlewares.convertal-api-limit.ratelimit.period: 1m
+      traefik.http.middlewares.convertal-api-limit.ratelimit.burst: "20"
+      traefik.http.middlewares.convertal-image-limit.ratelimit.average: "6"
+      traefik.http.middlewares.convertal-image-limit.ratelimit.period: 1m
+      traefik.http.middlewares.convertal-image-limit.ratelimit.burst: "2"
+      traefik.http.middlewares.convertal-web-limit.ratelimit.average: "240"
+      traefik.http.middlewares.convertal-web-limit.ratelimit.period: 1m
+      traefik.http.middlewares.convertal-web-limit.ratelimit.burst: "120"
+      traefik.http.middlewares.convertal-scope.headers.customrequestheaders.X-Convertal-Scope: convertal
+      traefik.http.middlewares.convertal-web-active.inflightreq.amount: "64"
+      traefik.http.middlewares.convertal-web-active.inflightreq.sourcecriterion.requestheadername: X-Convertal-Scope
+      traefik.http.middlewares.convertal-api-active.inflightreq.amount: "32"
+      traefik.http.middlewares.convertal-api-active.inflightreq.sourcecriterion.requestheadername: X-Convertal-Scope
+      traefik.http.middlewares.convertal-image-active.inflightreq.amount: "2"
+      traefik.http.middlewares.convertal-image-active.inflightreq.sourcecriterion.requestheadername: X-Convertal-Scope
+      traefik.http.middlewares.convertal-api-body.buffering.maxrequestbodybytes: "16384"
+      traefik.http.middlewares.convertal-api-body.buffering.memrequestbodybytes: "65536"
+      traefik.http.middlewares.convertal-api-body.buffering.maxresponsebodybytes: "262144"
+      traefik.http.middlewares.convertal-api-body.buffering.memresponsebodybytes: "1048576"
+      traefik.http.middlewares.convertal-image-body.buffering.maxrequestbodybytes: "10502144"
+      traefik.http.middlewares.convertal-image-body.buffering.memrequestbodybytes: "16777216"
+      traefik.http.middlewares.convertal-image-body.buffering.maxresponsebodybytes: "26214400"
+      traefik.http.middlewares.convertal-image-body.buffering.memresponsebodybytes: "33554432"
+    networks:
+      - backend
+      - dokploy-network
+
+networks:
+  backend:
+    external: true
+    name: convertal_backend
+  dokploy-network:
+    external: true
+    name: dokploy-network
