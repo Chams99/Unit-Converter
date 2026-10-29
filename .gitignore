@@ -5,6 +5,7 @@
 
 # testing
 **/coverage/
+qa-results/
 
 # next.js
 **/.next/

@@ -4,6 +4,7 @@ const path = require('node:path')
 const nextConfig = {
   // Keep only traced runtime files in the production container.
   output: 'standalone',
+  poweredByHeader: false,
   // This app imports workspace packages outside apps/web.
   outputFileTracingRoot: path.resolve(__dirname, '../..'),
   // Keep audit/preview builds isolated from a running development server.

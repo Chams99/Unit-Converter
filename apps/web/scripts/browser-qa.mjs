@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 
 const baseUrl = process.env.BASE_URL ?? 'http://localhost:3220'
 const chromePath = process.env.CHROME_PATH ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-const artifactDir = process.env.QA_ARTIFACT_DIR ?? resolve(process.cwd(), '../../docs/research/artifacts')
+const artifactDir = process.env.QA_ARTIFACT_DIR ?? resolve(process.cwd(), '../../qa-results/browser')
 await mkdir(artifactDir, { recursive: true })
 
 const browser = await chromium.launch({ headless: true, executablePath: chromePath })

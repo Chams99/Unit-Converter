@@ -10,7 +10,7 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '../../..')
 
 const BASE_URL = process.env.BASE_URL || ''
-const ARTIFACT_DIR = path.resolve(process.env.QA_ARTIFACT_DIR || path.join(REPO_ROOT, 'docs/audit-2026-10-04/final'))
+const ARTIFACT_DIR = path.resolve(process.env.QA_ARTIFACT_DIR || path.join(REPO_ROOT, 'qa-results/ui'))
 const CHROME = process.env.CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const routes = [
   { name: 'home', path: '/', tool: 'units' },

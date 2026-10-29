@@ -73,7 +73,7 @@ pnpm --filter @universal-convertal/web qa:ui
 ```
 
 The UI audit writes `results.json`, `README.md`, and screenshots under
-`docs/audit-2026-10-04/final/` by default. Set `QA_ARTIFACT_DIR` to choose another
+`qa-results/ui/` by default (ignored by git). Set `QA_ARTIFACT_DIR` to choose another
 output directory, and `CHROME_PATH` when Chrome is installed somewhere other
 than the runner's default path. Run `pnpm --filter @universal-convertal/web
 qa:performance` only after a production build is running; set `BASE_URL` to
@@ -88,7 +88,7 @@ operate on the active tool.
 Run `pnpm --filter @universal-convertal/web qa:history` against a running
 production build to check this behavior. Set `BASE_URL` to its origin
 (default `http://127.0.0.1:3220`). The test blocks API requests and writes
-results and screenshots under `docs/audit-2026-10-05/history/` by default.
+results and screenshots under `qa-results/history/` by default.
 
 ## Cover and link-preview images
 
@@ -109,7 +109,7 @@ pnpm --filter @universal-convertal/web cover
 - Developer transforms run locally with bounded inputs and allowlisted semantics.
 - Image conversion accepts only bounded uploads and allowlisted raster operations in the API. Larger document/media/archive jobs require a later isolated worker design.
 
-See [AGENTS.md](AGENTS.md) for repository rules, [system design.md](system%20design.md) for the product and visual system, [architecture research](docs/research/architecture.md) for the stack decision, and [conversion-engine research](docs/research/conversion-engines.md) for numerical and file-format constraints.
+See [system design.md](system%20design.md) for the product and visual system.
 
 The local UI primitives and their licenses are listed in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Product-specific route and
@@ -124,6 +124,3 @@ see [docs/deployment.md](docs/deployment.md). The API stays private on the
 Compose backend network; the public /api/ route is rate-limited by Traefik and
 forwarded through the web service.
 
-See [verification.md](docs/research/verification.md) for the checked commands,
-resolved dependency versions, production smoke ports, and known verification
-limits.

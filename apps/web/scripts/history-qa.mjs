@@ -5,7 +5,7 @@ import { chromium } from 'playwright'
 import axe from 'axe-core'
 
 const baseUrl = process.env.BASE_URL ?? 'http://127.0.0.1:3220'
-const artifactDir = resolve(process.env.QA_ARTIFACT_DIR ?? '../../docs/audit-2026-10-05/history')
+const artifactDir = resolve(process.env.QA_ARTIFACT_DIR ?? '../../qa-results/history')
 const key = 'convertal-history-v1'
 const results = []
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' })

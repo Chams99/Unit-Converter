@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 
 const baseUrl = process.env.BASE_URL ?? 'http://localhost:43212'
 const chromePath = process.env.CHROME_PATH ?? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-const artifactPath = process.env.PERF_ARTIFACT ?? resolve(process.cwd(), '../../docs/research/artifacts/performance-latest.json')
+const artifactPath = process.env.PERF_ARTIFACT ?? resolve(process.cwd(), '../../qa-results/performance-latest.json')
 const browser = await chromium.launch({ headless: true, executablePath: chromePath })
 const samples = []
 

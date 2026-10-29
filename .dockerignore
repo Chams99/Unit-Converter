@@ -22,5 +22,4 @@ docs
 !**/.env.example
 !/.env.deploy.example
 README*
-AGENTS.md
 system design.md
