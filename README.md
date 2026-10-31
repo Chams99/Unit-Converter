@@ -124,3 +124,7 @@ see [docs/deployment.md](docs/deployment.md). The API stays private on the
 Compose backend network; the public /api/ route is rate-limited by Traefik and
 forwarded through the web service.
 
+The app lives at [units.chames.tn](https://units.chames.tn). The older Vercel
+projects for this repository only redirect there; `vercel.json` holds that
+redirect and skips the install and build on Vercel.
+
