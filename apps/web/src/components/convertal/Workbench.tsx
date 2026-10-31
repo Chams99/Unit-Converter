@@ -63,6 +63,7 @@ import {
 } from './FlatIcon'
 import { ConversionError, convertValue, Decimal, developer, formatSignificant, units, type DisplayNumber, type UnitDefinition } from '@conversion'
 import { cn } from '@/lib/utils'
+import { MadeBy } from './MadeBy'
 
 type ToolId = 'units' | 'currency' | 'developer' | 'images'
 type DeveloperMode = 'json' | 'base64' | 'url' | 'uuid' | 'timestamp'
@@ -1027,6 +1028,7 @@ export function Workbench({ defaultTool }: { defaultTool?: ToolId }) {
         <HistoryPanel tool={activeTool} entries={activeEntries} clear={() => clear(activeTool)} undoClear={undoClear} canUndo={lastCleared?.tool === activeTool} remove={remove} onReplay={replay} />
       </main>
       <footer className="app-footer"><span>Universal Convertal · precise tools for everyday work</span><span className="footer-shortcut"><Keyboard aria-hidden="true" /><span className="desktop-shortcut">{shortcutKey} to search tools</span><span className="mobile-shortcut">Use Search tools above</span></span></footer>
+      <MadeBy />
     </div>
   )
 }
