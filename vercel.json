@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "echo \"Nothing to install: the Vercel projects only redirect to units.chames.tn\"",
-  "buildCommand": "mkdir -p vercel-redirect && printf '%s' '<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"refresh\" content=\"0; url=https://units.chames.tn/\"><link rel=\"canonical\" href=\"https://units.chames.tn/\"><title>Universal Convertal</title><p>Universal Convertal lives at <a href=\"https://units.chames.tn/\">units.chames.tn</a>.</p>' > vercel-redirect/index.html",
+  "buildCommand": "echo \"Nothing to build: vercel-redirect/ holds the fallback page\"",
   "outputDirectory": "vercel-redirect",
   "redirects": [
     { "source": "/", "destination": "https://units.chames.tn/", "permanent": true },
