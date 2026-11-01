@@ -42,7 +42,7 @@ const coverCss = `
     background: radial-gradient(60rem 40rem at 105% 110%, hsl(var(--primary) / 0.16), transparent 60%), radial-gradient(40rem 30rem at -10% -20%, hsl(var(--primary) / 0.12), transparent 60%), hsl(var(--background));
     color: hsl(var(--foreground)); font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif; }
   .cover-copy { display: flex; flex-direction: column; padding: 4rem 0 3.5rem 4rem; }
-  .cover-mark { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border-radius: 0.9rem; background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); font-size: 1.25rem; font-weight: 800; letter-spacing: -0.06em; }
+  .cover-mark { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border-radius: 0.8rem; background: hsl(var(--highlight)); color: hsl(var(--highlight-foreground)); font-size: 1.25rem; font-weight: 800; letter-spacing: -0.04em; }
   .cover-copy h1 { margin: 2.25rem 0 0; font-size: 4.25rem; font-weight: 700; line-height: 0.98; letter-spacing: -0.045em; }
   .cover-copy p { max-width: 25rem; margin: 1.4rem 0 0; color: hsl(var(--muted-foreground)); font-size: 1.75rem; line-height: 1.28; letter-spacing: -0.015em; }
   .cover-site { margin-top: auto; color: hsl(var(--muted-foreground)); font-size: 1.25rem; font-weight: 600; }

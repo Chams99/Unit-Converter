@@ -1,7 +1,7 @@
 # Universal Convertal system design
 
 **Status:** first-release product and visual system  
-**Updated:** 2026-10-05
+**Updated:** 2026-10-06
 
 Universal Convertal should feel like a dependable technical utility: quick for a one-off conversion, clear when a value is unavailable or stale, and broad enough to support expert workflows without becoming a crowded toolbox. The interface should establish trust through visible units, source metadata, precision, and honest capability boundaries.
 
@@ -45,9 +45,9 @@ Each route receives a stable deep link for its selected category/operation throu
 
 The visual language is calm, crisp, and tool-oriented:
 
-- Use a neutral ink/surface foundation, one high-contrast action color, and one restrained accent for successful output.
-- Keep cards lightly bordered and layered by surface rather than by heavy shadows. Reserve elevation for the active workspace, menus, and transient feedback.
-- Use one readable sans-serif family for interface text and a monospace face for code, values, units, and timestamps. Numeric output uses tabular figures where available.
+- Use a neutral ink/surface foundation, one high-contrast action color, and one restrained accent for successful output. The action color is the ink itself (near-black on light, near-white on dark). The output accent is a tape-measure yellow (`--highlight`), used only as a marker: the tape strip under the unit result, the brand mark, and a wash behind the selected unit row. It is about 1.6:1 against light surfaces, so it never carries text or a state on its own; an ink rule or weight change always accompanies it. Green (`--success`) remains the status color.
+- Keep cards lightly bordered and layered by surface rather than by heavy shadows. Reserve elevation for the active workspace, menus, and transient feedback; the history/context panel stays flat.
+- Use one readable sans-serif family for interface text and a monospace face for code, values, units, and timestamps. Numeric output uses tabular figures where available. The families are Atkinson Hyperlegible Next and Atkinson Hyperlegible Mono, chosen because they keep look-alike glyphs (0/O, 1/l/I, 5/S) distinct when a value is read at a glance. next/font has no fallback metrics for them, so `globals.css` declares size-matched Arial and Courier New fallbacks; with font files delayed by 1.5 s, the measured layout shift on `/`, `/currency`, and `/developer` stayed at or below 0.001.
 - Use icons as labels or supporting affordances, never as the sole explanation of an action. The workbench uses the local filled Bootstrap SVG set in `apps/web/src/components/convertal/FlatIcon.tsx`; copied shadcn primitives may retain their upstream Lucide imports.
 - Keep decorative gradients and background patterns quiet enough that value, unit, and error text remain dominant.
 
@@ -102,7 +102,7 @@ Keep page-specific composition in the route section. A component should not sile
 
 The core conversion should update immediately enough to feel direct; debounce only expensive or network-backed work. Preserve the raw input string so a user can type a partial value, minus sign, decimal separator, or exponent without the UI fighting the edit. Show a neutral empty state before a valid number, an inline validation state for malformed or impossible input, and a result with copy feedback after conversion.
 
-The unit workflow picks a category from keyboard-operable chips (a native radio group), then shows two rows, amount and source unit, then result and target unit, with the swap between them. The result is the largest text in the workspace. Below it, a relationship line (`1 km = 0.621 mi`, or two reference points for affine temperatures) and a list of the same amount in every compatible unit, which also sets the target unit. Target-unit choices only include units of the same kind, so absolute temperatures and temperature differences cannot be paired.
+The unit workflow picks a category from keyboard-operable chips (a native radio group), then shows two rows, amount and source unit, then result and target unit, with the swap between them. The result is the largest text in the workspace: a readout set directly on the panel rather than inside a field, sized from its own column width and character count so typical values stay on one line, and wrapping only between digit groups at the minimum size. Below it, a relationship line (`1 km = 0.621 mi`, or two reference points for affine temperatures) and a list of the same amount in every compatible unit, which also sets the target unit. The list is set like a printed conversion table, with ruled rows and dot leaders, rather than as a grid of cards. Target-unit choices only include units of the same kind, so absolute temperatures and temperature differences cannot be paired.
 
 Display precision policy: unit results show at most 12 significant digits with comma digit grouping. Values below 1e-6, or at and above 1e15, switch to a mantissa and power of ten so small results are not rounded to zero. "Show full precision" reveals up to the 40 significant digits used for calculation. Copy actions copy the ungrouped displayed value. These rules live in `formatSignificant` in `@simple-units/conversion`, separate from arithmetic and parsing. Input accepts English digit grouping (`1,250`), but never treats a comma as a decimal separator.
 
@@ -140,6 +140,12 @@ Keep the default route largely static and lazy-load heavy image/developer module
 - Result formatting distinguishes display precision from calculation precision and exposes the unit/symbol clearly.
 - Reduced motion removes nonessential animation, and scripts failing to load still leave meaningful headings and form labels visible.
 - The same workflow survives direct route load, client navigation, browser back/forward, dark mode, 200% zoom, and a narrow touch viewport.
+## Visual identity — 2026-10-06
+
+The first visual pass used Inter, a saturated blue action color, pill chips with blue icons, a green-tinted result field, and a grid of bordered unit cards. It was usable but read as a generic component kit and did not survive downscaling to a portfolio or link-preview card. The revision grounds the identity in measuring tools: ink and paper surfaces, hyperlegible type, a readout instead of a result field, a tape-measure strip under the reading, and a reference-table unit list. Rejected alternatives: keeping the blue action color (indistinguishable from default component themes); using the yellow for text, focus, or selected states (fails the 3:1 non-text and 4.5:1 text contrast requirements on light surfaces); and IBM Plex or Inter (common defaults with less distinct numerals). The tape strip is a CSS pseudo-element with a forced-colors fallback, so assistive technology does not announce it.
+
+`docs/portfolio/cover-{dark,light}.png` and `apps/web/app/opengraph-image.png` are captured from the real converter by `pnpm --filter @universal-convertal/web cover`; regenerate them after visual changes.
+
 ## Resource hardening — 2026-10-05
 
 The synchronous image route now uses short-lived child processes, with hard

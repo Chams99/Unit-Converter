@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
@@ -204,8 +204,18 @@ function normalizeAmount(raw: string): string {
   return /^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d*)?$/.test(compact) ? compact.replace(/,/g, '') : compact
 }
 
+/** Lets long grouped numbers wrap after a digit-group comma before breaking inside a group. */
+function GroupedDigits({ text }: { text: string }) {
+  return <>{text.split(',').map((group, index) => index === 0 ? group : <Fragment key={index}>,<wbr />{group}</Fragment>)}</>
+}
+
+/** Character count the readout sizes itself against, so it fills its column without wrapping. */
+function readoutLength(value: DisplayNumber) {
+  return value.significand.length + (value.exponent === null ? 0 : ` × 10${value.exponent}`.length)
+}
+
 function NumberText({ value }: { value: DisplayNumber }) {
-  if (value.exponent === null) return <>{value.significand}</>
+  if (value.exponent === null) return <GroupedDigits text={value.significand} />
   const exponent = String(value.exponent).replace('-', '−')
   return <><span aria-hidden="true">{value.significand} <span className="times-ten">×{' '}10<sup>{exponent}</sup></span></span><span className="sr-only">{value.significand} times 10 to the power {value.exponent}</span></>
 }
@@ -562,11 +572,11 @@ function UnitsTool({ addHistory, replay }: { addHistory: AddHistory; replay: Rep
           <SwapButton direction="vertical" label="Swap source and target units" onSwap={swap} />
         </div>
         <div className="converter-row">
-          <div className="field-group">
+          <div className="field-group result-field">
             <span className="field-label" id="field-result-label">Result</span>
             <div className={cn('result-output', display && 'result-ready')}>
               <output id="field-result" htmlFor="field-amount field-from field-to" aria-labelledby="field-result-label">
-                {display ? <><strong key={`${display.plain}-${toUnit.id}`} className={cn('result-value', animateResult && 'value-enter')}><NumberText value={display} /></strong><span className="result-unit">{toUnit.symbol}</span></> : <span className="placeholder-result">{placeholder}</span>}
+                {display ? <><strong key={`${display.plain}-${toUnit.id}`} className={cn('result-value', animateResult && 'value-enter')} style={{ '--chars': readoutLength(display) } as React.CSSProperties}><NumberText value={display} /></strong><span className="result-unit">{toUnit.symbol}</span></> : <span className="placeholder-result">{placeholder}</span>}
               </output>
               {display && <CopyButton value={display.plain} label="Copy result" />}
             </div>
@@ -925,7 +935,7 @@ function HistoryPanel({ tool, entries, clear, undoClear, canUndo, remove, onRepl
       <div className="context-heading"><h2 id="recent-title" className="heading-with-icon"><History aria-hidden="true" />Recent</h2>{entries.length > 0 && <button type="button" className="text-button icon-text-button" onClick={clear}><Trash2 aria-hidden="true" />Clear all</button>}</div>
       {canUndo && <div className="inline-note history-undo" role="status"><span>History cleared.</span><button type="button" className="text-button icon-text-button" onClick={undoClear}><Undo aria-hidden="true" />Undo</button></div>}
       {entries.length === 0
-        ? <div className="empty-history"><span className="empty-icon"><History aria-hidden="true" /></span><p>{empty.title}</p><span>{empty.body}</span></div>
+        ? <div className="empty-history"><p>{empty.title}</p><span>{empty.body}</span></div>
         : (
           <ul className="history-list">
             {entries.slice(0, HISTORY_PER_TOOL).map((entry) => (
