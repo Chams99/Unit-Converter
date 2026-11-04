@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
-const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
+// Atkinson Hyperlegible keeps look-alike glyphs (0/O, 1/l/I, 5/S) distinct, which matters when reading results.
+// next/font has no fallback metrics for these families; globals.css defines size-matched local fallbacks.
+const sans = Atkinson_Hyperlegible_Next({ subsets: ['latin'], variable: '--font-sans', adjustFontFallback: false, fallback: ['Atkinson Next Fallback', 'Arial', 'sans-serif'] })
+const mono = Atkinson_Hyperlegible_Mono({ subsets: ['latin'], variable: '--font-mono', adjustFontFallback: false, fallback: ['Atkinson Mono Fallback', 'Courier New', 'monospace'] })
 
 const title = 'Universal Convertal — precise tools for everyday work'
 const description = 'Units, currency, developer, and bounded image conversion tools with clear results and honest context.'
@@ -32,8 +34,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: [
-      { media: '(prefers-color-scheme: light)', color: '#f7f8fa' },
-      { media: '(prefers-color-scheme: dark)', color: '#0b1220' },
+      { media: '(prefers-color-scheme: light)', color: '#f4f5f7' },
+      { media: '(prefers-color-scheme: dark)', color: '#111317' },
   ],
 }
 
@@ -44,7 +46,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${mono.variable} ${inter.className}`}>
+      <body className={`${sans.variable} ${mono.variable} ${sans.className}`}>
         <Providers>
           {children}
         </Providers>
