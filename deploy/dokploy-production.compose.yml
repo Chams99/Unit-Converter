@@ -6,6 +6,8 @@ services:
       target: api
       args:
         NODE_IMAGE: node:24-bookworm-slim
+        # Match the web build args so both targets reuse one workspace build stage.
+        CONVERTAL_SITE_URL: https://units.chames.tn
     restart: unless-stopped
     init: true
     mem_limit: 1g
@@ -53,6 +55,8 @@ services:
       args:
         NODE_IMAGE: node:24-bookworm-slim
         CONVERTAL_API_URL: http://api:8787
+        # Link previews need the public origin baked into the static pages.
+        CONVERTAL_SITE_URL: https://units.chames.tn
     restart: unless-stopped
     init: true
     mem_limit: 512m
